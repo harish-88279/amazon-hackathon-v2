@@ -1,0 +1,18 @@
+# Tested on Python 3.10 (Linux x86_64 sandbox) and intended for Python 3.10/3.11 on Windows x64.
+numpy==2.2.6
+pandas==2.3.3
+pyarrow>=17.0.0
+scipy>=1.13
+scikit-learn==1.7.2
+rapidfuzz==3.14.5
+sparse_dot_topn==1.2.0
+jellyfish>=1.0
+anyascii>=0.3
+catboost==1.2.10
+lightgbm==4.7.0
+pyyaml>=6.0
+pytest>=8.0
+tqdm>=4.66
+# Optional neural channel (disabled by default; see configs/baseline.yaml -> retrieval.dense.enabled):
+# sentence-transformers>=3.0
+# faiss-cpu>=1.8

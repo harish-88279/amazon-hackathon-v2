@@ -1,0 +1,66 @@
+# Baseline configuration. Paths are relative to this repo's code/business_entity_resolution/ folder
+# unless absolute. Every value below is validated by ber.config before long work starts.
+project_root: ../..                      # folder that holds student_resource/, runs/, cache/, output/, releases/
+data_root: ../../student_resource/dataset
+output_root: ../../output
+runs_root: ../../runs
+cache_root: ../../cache
+releases_root: ../../releases
+validator: ../../student_resource/utils/validate_submission.py
+seed: 42
+offline: true                            # no network access is required or used by the pipeline
+normalizer_version: v3
+feature_schema_version: v2
+
+split:
+  manifest: splits/dev_split.json        # written under runs_root/<run_id>/ by `split`; copied into cache for reuse
+  holdout_fraction: 0.15                 # untouched final holdout (by identity group)
+  n_folds: 5                             # grouped folds on the remaining development groups
+  strata: [country, match_bucket]
+
+retrieval:
+  country_filter: true                   # ablation knob; unknown/missing country never drops an anchor
+  k_name_char: 20                        # per target source (S2 and S3 separately)
+  k_addr_char: 20
+  k_combined_word: 20
+  k_dense: 20
+  min_name_cos: 0.25
+  min_addr_cos: 0.30
+  min_comb_cos: 0.20
+  exact_block_cap: 300                   # larger exact blocks are ranked by name/address sim and truncated (logged)
+  union_budget: 50                       # max candidates per S1 after channel union (ranked by best channel score)
+  query_chunk: 20000
+  dense:
+    enabled: false
+    model: intfloat/multilingual-e5-small
+    revision: main
+
+training:
+  train_s1_sample: 60000                 # S1 anchors used to build the pair table (0 = all); ~3M pairs, ~1 h CatBoost on 4 cores
+  model: catboost                        # catboost | lightgbm (fallback if catboost unavailable)
+  catboost:
+    depth: 8
+    learning_rate: 0.05
+    iterations: 1000
+    l2_leaf_reg: 3.0
+    od_wait: 60
+    thread_count: -1
+  lightgbm:
+    num_leaves: 127
+    learning_rate: 0.05
+    n_estimators: 3000
+    min_child_samples: 100
+  anchor_weighting: equal_per_anchor     # equal_per_anchor | per_pair (ablation)
+
+calibration:
+  method: sigmoid                        # sigmoid | isotonic | none ; fitted on OOF scores with group cross-fitting
+
+decision:
+  policy: threshold                      # threshold | threshold_per_source
+  grid: [0.05, 0.96, 0.01]               # start, stop, step for the macro-F0.5 sweep
+  one_to_one: false                      # ablation only; NOT a rule of the task
+  bootstrap_samples: 200
+
+inference:
+  pair_chunk: 1500000
+  atomic_write: true

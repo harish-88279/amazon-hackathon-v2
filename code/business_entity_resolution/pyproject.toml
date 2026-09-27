@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ber"
+version = "0.1.0"
+description = "Business Entity Resolution pipeline for Amazon ML Challenge 2026"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []  # pinned in requirements.txt; install with --no-deps
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["ber"]
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+addopts = "-q"
+markers = ["slow: end-to-end CLI run on the synthetic fixture (~1 min)"]
